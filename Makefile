@@ -83,8 +83,16 @@ generate: controller-gen
 
 ## docker-build: Build the docker image
 docker-build: test
-	docker build . -t ${IMG}
-	docker tag ${IMG} ${IMG_LATEST}
+	#docker build . -t ${IMG}
+	#docker tag ${IMG} ${IMG_LATEST}
+	docker version
+	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --file Dockerfile -t ${IMG} .
+	#docker tag ${IMG} ${IMG_LATEST}
+
+### buildx-build: Build the docker image multi-platform
+#buildx-build: test
+#	docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --file Dockerfile -t ${BLDXIMG} .
+#	docker tag ${BLDXIMG} ${BLDXIMG_LATEST}
 
 ## docker-build-dont-test: Build the docker image without running tests
 docker-build-dont-test: generate fmt vet manifests
