@@ -86,6 +86,9 @@ docker-build: test
 	#docker build . -t ${IMG}
 	#docker tag ${IMG} ${IMG_LATEST}
 	docker version
+	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx create --name mybuilder
+	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx use mybuilder
+	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx ls
 	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --file Dockerfile -t ${IMG} .
 	#docker tag ${IMG} ${IMG_LATEST}
 
