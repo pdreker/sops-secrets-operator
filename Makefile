@@ -86,10 +86,13 @@ docker-build: test
 	#docker build . -t ${IMG}
 	#docker tag ${IMG} ${IMG_LATEST}
 	docker version
-	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx create --name mybuilder
-	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx use mybuilder
-	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx ls
-	DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --file Dockerfile -t ${IMG} .
+	DOCKER_BUILDKIT=1 DOCKER_CLI_EXPERIMENTAL=enabled docker build --platform=local -o . git://github.com/docker/buildx
+	mkdir -p ~/.docker/cli-plugins/
+	mv buildx ~/.docker/cli-plugins/docker-buildx
+	DOCKER_BUILDKIT=1 DOCKER_CLI_EXPERIMENTAL=enabled docker buildx create --name mybuilder
+	DOCKER_BUILDKIT=1 DOCKER_CLI_EXPERIMENTAL=enabled docker buildx use mybuilder
+	DOCKER_BUILDKIT=1 DOCKER_CLI_EXPERIMENTAL=enabled docker buildx ls
+	DOCKER_BUILDKIT=1 DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 --file Dockerfile -t ${IMG} .
 	#docker tag ${IMG} ${IMG_LATEST}
 
 ### buildx-build: Build the docker image multi-platform
