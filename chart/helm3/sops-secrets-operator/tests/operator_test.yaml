@@ -1,0 +1,160 @@
+---
+suite: operator deployment tests
+templates:
+  - operator.yaml
+
+tests:
+
+  # api
+  - it: should set correct kind and apiVersion
+    asserts:
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - hasDocuments:
+          count: 1
+
+  # deployment metadata and labels
+  - it: should correctly render deployment metadata
+    release:
+      name: sops
+      namespace: sops
+    asserts:
+      - equal:
+          path: metadata.name
+          value: sops-sops-secrets-operator
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/instance: sops
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: sops-secrets-operator
+            app.kubernetes.io/version: 0.1.4
+            helm.sh/chart: sops-secrets-operator-0.4.6
+
+  # template metadata and spec selector
+  - it: should correctly render template metadata and spec selector
+    release:
+      name: sops
+      namespace: sops
+    asserts:
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/instance: sops
+            app.kubernetes.io/name: sops-secrets-operator
+      - equal:
+          path: spec.template.metadata.labels
+          value:
+            app.kubernetes.io/instance: sops
+            app.kubernetes.io/name: sops-secrets-operator
+
+  # replicas
+  - it: should correctly set default replicas
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should correctly set overriden replicas
+    set:
+      replicaCount: 5
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 5
+
+  # pod annotations
+  - it: pod annotations should be empty by default
+    asserts:
+      - isEmpty:
+          path: spec.template.metadata.annotations
+
+  - it: should render pod annotations if set in values
+    set:
+      podAnnotations:
+        abc: qqq
+        cde: zzz
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations
+          value:
+            abc: qqq
+            cde: zzz
+
+  # image pull secrets
+  - it: imagePullSecrets should be empty by default
+    asserts:
+      - isEmpty:
+          path: spec.template.spec.imagePullSecrets
+
+  - it: should correctly render imagePullSecrets
+    set:
+      imagePullSecrets:
+        - name: my-harbor
+        - name: your-harbor
+    asserts:
+      - isNotEmpty:
+          path: spec.template.spec.imagePullSecrets
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: my-harbor
+      - equal:
+          path: spec.template.spec.imagePullSecrets[1].name
+          value: your-harbor
+
+  # service account name (TODO: full coverage of include sops-secrets-operator.fullname)
+  - it: should correctly render deployment metadata
+    release:
+      name: sops
+      namespace: sops
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: sops-sops-secrets-operator
+
+  # GPG init container
+  - it: should not create GPG init container by default
+    asserts:
+      - isEmpty:
+          path: spec.template.spec.initContainers
+
+  - it: should create GPG init container if enabled
+    set:
+      gpg:
+        enabled: true
+    asserts:
+      - isNotEmpty:
+          path: spec.template.spec.initContainers
+
+  # container name
+  - it: should set default image settings wrong
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: sops-secrets-operator
+
+  # container image
+  - it: should set default image
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: isindir/sops-secrets-operator:0.1.4
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  - it: should render nondefault image pull policy and image name
+    set:
+      image:
+        repository: myharbor.example.net/sops
+        tag: 0.42.0
+        pullPolicy: ifNotPresent
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: ifNotPresent
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: myharbor.example.net/sops:0.42.0

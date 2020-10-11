@@ -31,6 +31,10 @@ package-helm:
 			helm repo index . --url https://isindir.github.io/sops-secrets-operator ) ; \
 	}
 
+## test-helm: test helm charts
+test-helm:
+	$(MAKE) -C chart/helm3/sops-secrets-operator test
+
 ## test: Run tests
 test: generate fmt vet manifests
 	USE_EXISTING_CLUSTER=${USE_EXISTING_CLUSTER} go test ./... -coverprofile cover.out
