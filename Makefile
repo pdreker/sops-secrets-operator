@@ -33,7 +33,10 @@ package-helm:
 
 ## test-helm: test helm charts
 test-helm:
-	$(MAKE) -C chart/helm3/sops-secrets-operator test
+	@{ \
+		$(MAKE) -C chart/helm2/sops-secrets-operator all ; \
+		$(MAKE) -C chart/helm3/sops-secrets-operator all ; \
+	}
 
 ## test: Run tests
 test: generate fmt vet manifests
