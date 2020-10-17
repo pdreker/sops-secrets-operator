@@ -138,6 +138,12 @@ else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
 
+## pre-commit: update pre-commit
+pre-commit:
+	pre-commit install
+	pre-commit autoupdate
+	pre-commit run -a
+
 .PHONY: help
 ## help: prints this help message
 help:

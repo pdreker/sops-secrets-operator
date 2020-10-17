@@ -34,6 +34,10 @@ validate:
 	helm template . | kubeval --ignore-missing-schemas --force-color -
 	@echo '--------------------'
 
+## docs: generate chart documentation to stdout, if firgate is installed
+docs:
+	frigate gen .
+
 .PHONY: help
 ## help: prints this help message
 help:

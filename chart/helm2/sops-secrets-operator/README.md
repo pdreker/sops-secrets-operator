@@ -75,18 +75,21 @@ The following table lists the configurable parameters of the Sops-secrets-operat
 | ------------------------ | ----------------------- | -------------- |
 | `replicaCount` | Deployment replica count  - should not be modified | `1` |
 | `image.repository` | Operator image | `"isindir/sops-secrets-operator"` |
-| `image.tag` | Operator image tag | `"0.1.0"` |
+| `image.tag` | Operator image tag | `"0.1.5"` |
 | `image.pullPolicy` | Operator image pull policy | `"Always"` |
 | `imagePullSecrets` | Secrets to pull image from private docker repository | `[]` |
 | `nameOverride` | Overrides auto-generated short resource name | `""` |
 | `fullnameOverride` | Overrides auto-generated long resource name | `""` |
 | `podAnnotations` | Annotations to be added to operator pod | `{}` |
+| `serviceAccount.annotations` | Annotations to be added to the service account | `{}` |
 | `gpg.enabled` | If `true` gcp secret will be created from provided value and mounted as environment variable | `false` |
 | `gpg.secret1` | Name of the secret to create - will override default secret name if specified | `"gpg1"` |
 | `gpg.secret2` | Name of the secret to create - will override default secret name if specified | `"gpg2"` |
 | `gcp.enabled` | Node labels for operator pod assignment | `false` |
 | `gcp.svcAccSecretCustomName` | Name of the secret to create - will override default secret name if specified | `""` |
 | `gcp.svcAccSecret` | If `gcp.enabled` is `true`, this value must be specified as gcp service account secret json payload | `""` |
+| `secretsAsEnvVars` | Configure custom secrets to be used as environment variables at runtime, see values.yaml | `[]` |
+| `secretsAsFiles` | Configure custom secrets to be mounted at runtime, see values.yaml | `[]` |
 | `resources` | Operator container resources | `{}` |
 | `nodeSelector` | Node selector to use for pod configuration | `{}` |
 | `securityContext.enabled` | Enable securitycontext | `false` |

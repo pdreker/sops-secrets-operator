@@ -135,7 +135,7 @@ tests:
           path: spec.template.spec.containers[0].name
           value: sops-secrets-operator
 
-  # container image
+  # container image and pull policy
   - it: should set default image
     asserts:
       - equal:
@@ -158,3 +158,123 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: myharbor.example.net/sops:0.42.0
+
+  # container volume mounts
+  - it: should render empty set of volume mounts by default
+    asserts:
+      - isEmpty:
+          path: spec.template.spec.containers[0].volumeMounts
+
+  - it: should render gcp volume mount if enabled
+    set:
+      gcp:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /var/secrets/google
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: sops-operator-gke-svc-account
+
+  - it: should render gpg volume mounts if enabled
+    set:
+      gpg:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /var/secrets/gpg
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: sops-gpg
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /var/secrets/gpg-secrets
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: sops-operator-gpg-keys1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[2].mountPath
+          value: /var/secrets/gpg-secrets/private-keys-v1.d
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[2].name
+          value: sops-operator-gpg-keys2
+
+  - it: should render secret volume mounts if set
+    set:
+      secretsAsFiles:
+      - name: foo
+        mountPath: "/etc/foo"
+        secretName: mysecret
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /etc/foo
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: foo
+
+  # default env vars
+  - it: by default renders only one variable
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+  # env var GOOGLE_APPLICATION_CREDENTIALS
+  - it: if gcp enabled adds GOOGLE_APPLICATION_CREDENTIALS env var
+    set:
+      gcp:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1]
+          value:
+            name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/secrets/google/key.json
+
+  # env var GNUPGHOME
+  - it: if gpg enabled adds GNUPGHOME env var
+    set:
+      gpg:
+        enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1]
+          value:
+            name: GNUPGHOME
+            value: /var/secrets/gpg
+
+  # custom env vars
+  - it: if secretsAsEnvVars adds new env vars
+    set:
+      secretsAsEnvVars:
+      - name: SECRET_GREETING
+        secretName: my-secret-greeting
+        secretKey: greeting
+      - name: ANOTHER_SECRET_GREETING
+        secretName: another-secret-greeting
+        secretKey: greeting
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: SECRET_GREETING
+              valueFrom:
+                secretKeyRef:
+                  key: greeting
+                  name: my-secret-greeting
+            - name: ANOTHER_SECRET_GREETING
+              valueFrom:
+                secretKeyRef:
+                  key: greeting
+                  name: another-secret-greeting
